@@ -1,0 +1,58 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "onlineQuranTutor",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/Juz/GetAllJuz": {
+      "get": {
+        "tags": [
+          "Juz"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Juz/TestConnection": {
+      "get": {
+        "tags": [
+          "Juz"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Juz/GetJuzSurahQuran": {
+      "get": {
+        "tags": [
+          "Juz"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/getUsers": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": { }
+}
