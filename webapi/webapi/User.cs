@@ -16,7 +16,6 @@ namespace webapi
     {
         public User()
         {
-            this.Children = new HashSet<Child>();
             this.Guardians = new HashSet<Guardian>();
             this.Students = new HashSet<Student>();
             this.Tutors = new HashSet<Tutor>();
@@ -36,7 +35,6 @@ namespace webapi
         public string pictureType { get; set; }
         public Nullable<System.DateTime> createdAt { get; set; }
     
-        public virtual ICollection<Child> Children { get; set; }
         public virtual ICollection<Guardian> Guardians { get; set; }
         public virtual ICollection<Student> Students { get; set; }
         public virtual ICollection<Tutor> Tutors { get; set; }

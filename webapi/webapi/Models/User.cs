@@ -23,4 +23,11 @@ namespace webapi.Models
     {
         public int subjectid { get; set; }
     }
+    public class StudentSubject
+    {
+        public string preffered_teachers { get; set; }
+        public int userid { get; set; }
+        public int subjectid { get; set; }
+    }
+
 }

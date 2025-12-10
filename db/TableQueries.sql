@@ -42,11 +42,17 @@ CREATE TABLE Student (
 -- 5. Child
 CREATE TABLE Child (
     childID INT IDENTITY(1,1) PRIMARY KEY,
+
     guardianID INT NOT NULL,
-    userID INT NOT NULL,
-    CONSTRAINT FK_Child_Guardian FOREIGN KEY (guardianID) REFERENCES Guardian(guardianID) ON DELETE CASCADE,
-    CONSTRAINT FK_Child_User FOREIGN KEY (userID) REFERENCES [Users](userID)
+    studentID INT NOT NULL,
+
+    CONSTRAINT FK_Child_Guardian 
+        FOREIGN KEY (guardianID) REFERENCES Guardian(guardianID) ON DELETE CASCADE,
+
+    CONSTRAINT FK_Child_Student
+        FOREIGN KEY (studentID) REFERENCES Student(studentID) ON DELETE CASCADE
 );
+
 
 -- 6. Tutor
 CREATE TABLE Tutor (

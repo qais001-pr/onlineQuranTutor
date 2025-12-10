@@ -13,10 +13,10 @@ namespace webapi
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class onlineQuranTutorEntities : DbContext
+    public partial class onlineQuranTutorEntities3 : DbContext
     {
-        public onlineQuranTutorEntities()
-            : base("name=onlineQuranTutorEntities")
+        public onlineQuranTutorEntities3()
+            : base("name=onlineQuranTutorEntities3")
         {
         }
     

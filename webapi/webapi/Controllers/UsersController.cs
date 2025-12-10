@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using webapi.Models;
@@ -7,11 +8,10 @@ namespace webapi.Controllers
 {
     public class UsersController : ApiController
     {
-        onlineQuranTutorEntities _context = new onlineQuranTutorEntities();
+        onlineQuranTutorEntities3 _context = new onlineQuranTutorEntities3();
         [HttpPost]
         public HttpResponseMessage addUser(SignUpUser user)
         {
-            // BASIC VALIDATION 
             if (user == null ||
                 string.IsNullOrWhiteSpace(user.name) ||
                 string.IsNullOrWhiteSpace(user.email) ||
@@ -27,23 +27,21 @@ namespace webapi.Controllers
             {
                 return Request.CreateResponse(new
                 {
-                    statusCode = 400,
+                    statusCode =HttpStatusCode.NotAcceptable,
                     message = "All fields are required"
                 });
             }
 
-            // CHECK DUPLICATE USER 
-            var checkUser = _context.Users.FirstOrDefault(u => u.email == user.email);
+            var checkUser = _context.Users.Where(u => u.email == user.email).FirstOrDefault();
             if (checkUser != null)
             {
                 return Request.CreateResponse(new
                 {
-                    statusCode = 409,
+                    statusCode = HttpStatusCode.NotAcceptable,
                     message = $"User with email {user.email} already exists"
                 });
             }
 
-            // CONVERT BASE64 IMAGE 
             byte[] pictureBytes;
             try
             {
@@ -53,12 +51,11 @@ namespace webapi.Controllers
             {
                 return Request.CreateResponse(new
                 {
-                    statusCode = 400,
+                    statusCode = HttpStatusCode.Forbidden,
                     message = "Invalid Base64 image format"
                 });
             }
 
-            // CREATE USER 
             var newUser = new User
             {
                 name = user.name,
@@ -77,30 +74,43 @@ namespace webapi.Controllers
 
             _context.Users.Add(newUser);
             _context.SaveChanges();
-            if (user.userType.Equals("Student", StringComparison.OrdinalIgnoreCase))
-            {
-                var u = _context.Users.FirstOrDefault(us => us.email == newUser.email);
-                _context.Students.Add(new Student
-                {
-                    User = u
-                });
-                _context.SaveChanges();
-            }
-            // IF USER IS GUARDIAN, Create Guardian Record
             if (user.userType.Equals("Guardian", StringComparison.OrdinalIgnoreCase))
             {
-                var u = _context.Users.FirstOrDefault(us => us.email == newUser.email);
+                var us = _context.Users.FirstOrDefault(u => u.email == newUser.email);
                 _context.Guardians.Add(new Guardian
                 {
-                    User = u
+                    User = us
                 });
                 _context.SaveChanges();
+                var registereduser = from u in _context.Users
+                                     where u.email == newUser.email
+                                     join g in _context.Guardians on u.userID equals g.User.userID
+                                     select new
+                                     {
+                                         g.guardianID,
+                                         u.userID,
+                                         u.name,
+                                         u.gender,
+                                         u.dateOfBirth,
+                                         u.email,
+                                         u.password,
+                                         u.country,
+                                         u.city,
+                                         u.timezone,
+                                         u.profilePicture,
+                                         u.pictureType,
+                                     };
+                return Request.CreateResponse(new
+                {
+                    statusCode = HttpStatusCode.OK,
+                    message = "Guardian added successfully",
+                    data = registereduser,
+                });
             }
             if (user.userType.Equals("Tutor", StringComparison.OrdinalIgnoreCase) &&
                 user.tutorSubjects != null &&
                 user.tutorSubjects.Count > 0)
             {
-                //  Create Tutor
                 var tutor = new Tutor
                 {
                     User = newUser,
@@ -109,8 +119,6 @@ namespace webapi.Controllers
 
                 _context.Tutors.Add(tutor);
                 _context.SaveChanges();
-
-                // Add Tutor Subjects
                 foreach (var subject in user.tutorSubjects)
                 {
                     var subj = _context.Subjects.FirstOrDefault(s => s.subjectID == subject.subjectid);
@@ -125,39 +133,38 @@ namespace webapi.Controllers
                 }
 
                 _context.SaveChanges();
-            }
+                var registereduser = from u in _context.Users
+                                     where u.email == newUser.email
+                                     join t in _context.Tutors on u.userID equals t.User.userID
+                                     select new
+                                     {
+                                         u.userID,
+                                         t.tutorID,
+                                         u.name,
+                                         u.gender,
+                                         u.dateOfBirth,
+                                         u.email,
+                                         u.password,
+                                         u.country,
+                                         u.city,
+                                         u.timezone,
+                                         u.profilePicture,
+                                         u.pictureType,
 
-            var registereduser = from u in _context.Users
-                                 where u.email == newUser.email
-                                 select new
-                                 {
-                                     u.userID,
-                                     u.name,
-                                     u.gender,
-                                     u.dateOfBirth,
-                                     u.email,
-                                     u.password,
-                                     u.country,
-                                     u.city,
-                                     u.timezone,
-                                     u.profilePicture,
-                                     u.pictureType,
-                                 };
+                                     };
+                return Request.CreateResponse(new
+                {
+                    statusCode = HttpStatusCode.OK,
+                    message = "Tutor added successfully",
+                    data = registereduser,
+                });
+            }
             return Request.CreateResponse(new
             {
-                statusCode = 200,
-                message = "User added successfully",
-                data = registereduser,
+                statusCode = HttpStatusCode.OK,
+                message = "User added successfully"
             });
         }
-
-
-
-
-
-
-
-
 
         [HttpPost]
         public HttpResponseMessage loginUser(Auth auth)
@@ -166,7 +173,7 @@ namespace webapi.Controllers
             {
                 return Request.CreateResponse(new
                 {
-                    statusCode = 400,
+                    statusCode = HttpStatusCode.BadRequest,
                     message = "Invalid request"
                 });
             }
@@ -190,13 +197,12 @@ namespace webapi.Controllers
                        };
             return Request.CreateResponse(new
             {
-                statusCode = 200,
+                statusCode = HttpStatusCode.OK,
                 data = user,
                 message = "Login successful"
             });
         }
     }
 }
-
 
 

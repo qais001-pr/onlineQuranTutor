@@ -15,8 +15,8 @@ namespace webapi
     public partial class Child
     {
         public int childID { get; set; }
+        public int studentID { get; set; }
     
         public virtual Guardian Guardian { get; set; }
-        public virtual User User { get; set; }
     }
 }

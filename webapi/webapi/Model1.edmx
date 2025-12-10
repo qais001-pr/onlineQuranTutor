@@ -23,7 +23,7 @@
           </Key>
           <Property Name="childID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="guardianID" Type="int" Nullable="false" />
-          <Property Name="userID" Type="int" Nullable="false" />
+          <Property Name="studentID" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="Classes">
           <Key>
@@ -222,18 +222,6 @@
             </Principal>
             <Dependent Role="Child">
               <PropertyRef Name="guardianID" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Child_User">
-          <End Role="Users" Type="Self.Users" Multiplicity="1" />
-          <End Role="Child" Type="Self.Child" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Users">
-              <PropertyRef Name="userID" />
-            </Principal>
-            <Dependent Role="Child">
-              <PropertyRef Name="userID" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -620,10 +608,6 @@
             <End Role="Guardian" EntitySet="Guardian" />
             <End Role="Child" EntitySet="Child" />
           </AssociationSet>
-          <AssociationSet Name="FK_Child_User" Association="Self.FK_Child_User">
-            <End Role="Users" EntitySet="Users" />
-            <End Role="Child" EntitySet="Child" />
-          </AssociationSet>
           <AssociationSet Name="FK_Classes_LessonPlan" Association="Self.FK_Classes_LessonPlan">
             <End Role="LessonPlan" EntitySet="LessonPlan" />
             <End Role="Classes" EntitySet="Classes" />
@@ -755,8 +739,8 @@
             <PropertyRef Name="childID" />
           </Key>
           <Property Name="childID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="studentID" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Guardian" Relationship="Self.FK_Child_Guardian" FromRole="Child" ToRole="Guardian" />
-          <NavigationProperty Name="User" Relationship="Self.FK_Child_User" FromRole="Child" ToRole="Users" />
         </EntityType>
         <EntityType Name="Class">
           <Key>
@@ -955,7 +939,6 @@
           <Property Name="profilePicture" Type="Binary" MaxLength="Max" FixedLength="false" />
           <Property Name="pictureType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="createdAt" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Children" Relationship="Self.FK_Child_User" FromRole="Users" ToRole="Child" />
           <NavigationProperty Name="Guardians" Relationship="Self.FK_Guardian_User" FromRole="Users" ToRole="Guardian" />
           <NavigationProperty Name="Students" Relationship="Self.FK_Student_User" FromRole="Users" ToRole="Student" />
           <NavigationProperty Name="Tutors" Relationship="Self.FK_Tutor_User" FromRole="Users" ToRole="Tutor" />
@@ -970,10 +953,6 @@
           <End Role="Guardian" Type="Self.Guardian" Multiplicity="1">
             <OnDelete Action="Cascade" />
           </End>
-          <End Role="Child" Type="Self.Child" Multiplicity="*" />
-        </Association>
-        <Association Name="FK_Child_User">
-          <End Role="Users" Type="Self.User" Multiplicity="1" />
           <End Role="Child" Type="Self.Child" Multiplicity="*" />
         </Association>
         <Association Name="FK_Classes_LessonPlan">
@@ -1114,7 +1093,7 @@
           </End>
           <End Role="TutorSubjects" Type="Self.TutorSubject" Multiplicity="*" />
         </Association>
-        <EntityContainer Name="onlineQuranTutorEntities" annotation:LazyLoadingEnabled="true">
+        <EntityContainer Name="onlineQuranTutorEntities3" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="Certificates" EntityType="Self.Certificate" />
           <EntitySet Name="Children" EntityType="Self.Child" />
           <EntitySet Name="Classes" EntityType="Self.Class" />
@@ -1141,10 +1120,6 @@
           </AssociationSet>
           <AssociationSet Name="FK_Child_Guardian" Association="Self.FK_Child_Guardian">
             <End Role="Guardian" EntitySet="Guardians" />
-            <End Role="Child" EntitySet="Children" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Child_User" Association="Self.FK_Child_User">
-            <End Role="Users" EntitySet="Users" />
             <End Role="Child" EntitySet="Children" />
           </AssociationSet>
           <AssociationSet Name="FK_Classes_LessonPlan" Association="Self.FK_Classes_LessonPlan">
@@ -1261,7 +1236,7 @@
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-        <EntityContainerMapping StorageEntityContainer="onlineQuranTutorModelStoreContainer" CdmEntityContainer="onlineQuranTutorEntities">
+        <EntityContainerMapping StorageEntityContainer="onlineQuranTutorModelStoreContainer" CdmEntityContainer="onlineQuranTutorEntities3">
           <EntitySetMapping Name="Certificates">
             <EntityTypeMapping TypeName="onlineQuranTutorModel.Certificate">
               <MappingFragment StoreEntitySet="Certificate">
@@ -1278,6 +1253,7 @@
             <EntityTypeMapping TypeName="onlineQuranTutorModel.Child">
               <MappingFragment StoreEntitySet="Child">
                 <ScalarProperty Name="childID" ColumnName="childID" />
+                <ScalarProperty Name="studentID" ColumnName="studentID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -1455,14 +1431,6 @@
           <AssociationSetMapping Name="FK_Child_Guardian" TypeName="onlineQuranTutorModel.FK_Child_Guardian" StoreEntitySet="Child">
             <EndProperty Name="Guardian">
               <ScalarProperty Name="guardianID" ColumnName="guardianID" />
-            </EndProperty>
-            <EndProperty Name="Child">
-              <ScalarProperty Name="childID" ColumnName="childID" />
-            </EndProperty>
-          </AssociationSetMapping>
-          <AssociationSetMapping Name="FK_Child_User" TypeName="onlineQuranTutorModel.FK_Child_User" StoreEntitySet="Child">
-            <EndProperty Name="Users">
-              <ScalarProperty Name="userID" ColumnName="userID" />
             </EndProperty>
             <EndProperty Name="Child">
               <ScalarProperty Name="childID" ColumnName="childID" />
