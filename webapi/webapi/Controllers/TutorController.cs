@@ -8,7 +8,7 @@ namespace webapi.Controllers
 {
     public class TutorController : ApiController
     {
-        onlineQuranTutorEntities3 _context = new onlineQuranTutorEntities3();
+        onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
 
         // ---------------------------------------------------------
         // ADD TUTOR SLOT
@@ -96,7 +96,7 @@ namespace webapi.Controllers
                                              ts.Subject.subjectName
                                          }),
                              ratings = (from c in _context.Classes
-                                        join r in _context.Reviews on c.ClassID equals r.Class.ClassID
+                                        join r in _context.Reviews on c.classID equals r.Class.classID
                                         where c.Tutor.tutorID == t.tutorID
                                         group r by c.Tutor.tutorID into g
                                         select new

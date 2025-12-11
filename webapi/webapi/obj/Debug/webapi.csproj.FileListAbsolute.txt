@@ -67,3 +67,9 @@ C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\obj\Debug\webapi.csproj.Co
 C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\obj\Debug\webapi.csproj.Up2Date
 C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\obj\Debug\webapi.dll
 C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\obj\Debug\webapi.pdb
+C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\bin\EntityFramework.SqlServer.dll
+C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\bin\Microsoft.Configuration.ConfigurationBuilders.Base.dll
+C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\bin\Microsoft.Configuration.ConfigurationBuilders.UserSecrets.dll
+C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\bin\EntityFramework.SqlServer.xml
+C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\bin\Microsoft.Configuration.ConfigurationBuilders.Base.xml
+C:\Users\admin\Desktop\onlineQuranTutor\webapi\webapi\bin\Microsoft.Configuration.ConfigurationBuilders.UserSecrets.xml

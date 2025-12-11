@@ -8,7 +8,7 @@ namespace webapi.Controllers
 {
     public class UsersController : ApiController
     {
-        onlineQuranTutorEntities3 _context = new onlineQuranTutorEntities3();
+        onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
         [HttpPost]
         public HttpResponseMessage addUser(SignUpUser user)
         {

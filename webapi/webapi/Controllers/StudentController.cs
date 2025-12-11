@@ -9,7 +9,7 @@ namespace webapi.Controllers
     public class StudentController : ApiController
     {
 
-        onlineQuranTutorEntities3 _context = new onlineQuranTutorEntities3();
+        onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
         /// <summary>
         /// Add Child Subjects for Student
         /// After Registered from the signup screen the student can add subjects with preferred teachers
