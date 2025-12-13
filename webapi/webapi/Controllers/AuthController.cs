@@ -1,7 +1,9 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using System.Net;
+using System.Web.UI.WebControls;
+using webapi.Models;
 namespace webapi.Controllers
 {
     public class AuthController : ApiController
@@ -14,17 +16,17 @@ namespace webapi.Controllers
             var user = _context.Users.Where(u => u.email == email).FirstOrDefault();
             if (user != null)
 
-                return Request.CreateResponse(new
+                return Request.CreateResponse(
+                    HttpStatusCode.OK, new
+                    {
+                        message = "Email checked successfully"
+                    });
+
+            return Request.CreateResponse(
+                HttpStatusCode.OK, new
                 {
-                    statusCode = HttpStatusCode.OK,
                     message = "Email checked successfully"
                 });
-
-            return Request.CreateResponse(new
-            {
-                statusCode = HttpStatusCode.OK,
-                message = "Email checked successfully"
-            });
         }
 
 
@@ -36,17 +38,158 @@ namespace webapi.Controllers
             {
                 user.password = newPassword;
                 _context.SaveChanges();
-                return Request.CreateResponse(new
+                return Request.CreateResponse(
+                    HttpStatusCode.OK, new
+                    {
+                        message = "Password updated successfully"
+                    });
+            }
+            return Request.CreateResponse(
+                HttpStatusCode.NotFound, new
                 {
-                    statusCode = HttpStatusCode.OK,
-                    message = "Password updated successfully"
+                    message = "User not found"
+                });
+        }
+        [HttpPost]
+        public HttpResponseMessage loginUser(Auth auth)
+        {
+            if (auth == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                {
+                    message = "Invalid request"
                 });
             }
-            return Request.CreateResponse(new
+
+            var user = _context.Users
+                .Where(u => u.email == auth.email && u.password == auth.password)
+                .Select(u => new
+                {
+                    u.userID,
+                    u.userType
+                })
+                .FirstOrDefault();
+
+            if (user == null)
             {
-                statusCode = HttpStatusCode.NotFound,
-                message = "User not found"
-            });
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                {
+                    message = "Login Failed"
+                });
+            }
+
+            switch (user.userType.ToLower())
+            {
+                // ================= STUDENT =================
+                case "student":
+                    {
+                        var result = (from u in _context.Users
+                                      join st in _context.Students on u.userID equals st.User.userID
+                                      where u.userID == user.userID
+                                      select new
+                                      {
+                                          u.userID,
+                                          u.userType,
+                                          u.name,
+                                          u.email,
+                                          u.timezone,
+                                          u.country,
+                                          u.city,
+                                          u.dateOfBirth,
+                                          u.createdAt,
+                                          st.studentID,
+                                          subjectID = st.Subject.subjectID,
+                                          st.preferred_teacher
+                                      }).FirstOrDefault();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = result });
+                    }
+
+                // ================= GUARDIAN =================
+                case "guardian":
+                    {
+                        var result = (from u in _context.Users
+                                      join g in _context.Guardians on u.userID equals g.User.userID
+                                      where u.userID == user.userID
+                                      select new
+                                      {
+                                          u.userID,
+                                          u.userType,
+                                          u.name,
+                                          u.email,
+                                          u.timezone,
+                                          u.country,
+                                          u.city,
+                                          u.dateOfBirth,
+                                          u.createdAt,
+                                          g.guardianID,
+
+                                          children = (
+                                              from ch in _context.Children
+                                              join st in _context.Students on ch.studentID equals st.studentID
+                                              join uu in _context.Users on st.User.userID equals uu.userID
+                                              where ch.Guardian.guardianID == g.guardianID
+                                              select new
+                                              {
+                                                  uu.userID,
+                                                  uu.name,
+                                                  uu.email,
+                                                  st.studentID,
+                                                  st.preferred_teacher
+                                              }
+                                          ).ToList()
+                                      }).FirstOrDefault();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = result });
+                    }
+
+                // ================= TUTOR =================
+                case "tutor":
+                    {
+                        var result = (from u in _context.Users
+                                      join t in _context.Tutors on u.userID equals t.User.userID
+                                      where u.userID == user.userID
+                                      select new
+                                      {
+                                          u.userID,
+                                          u.userType,
+                                          u.name,
+                                          u.email,
+                                          u.timezone,
+                                          u.country,
+                                          u.city,
+                                          u.createdAt,
+                                          t.tutorID,
+                                      }).FirstOrDefault();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = result });
+                    }
+
+                // ================= CHILD =================
+                case "child":
+                    {
+                        var result = (from u in _context.Users
+                                      join st in _context.Students on u.userID equals st.User.userID
+                                      where u.userID == user.userID
+                                      select new
+                                      {
+                                          u.userID,
+                                          u.userType,
+                                          u.name,
+                                          u.email,
+                                          st.studentID,
+                                          st.preferred_teacher
+                                      }).FirstOrDefault();
+
+                        return Request.CreateResponse(HttpStatusCode.OK, new { data = result });
+                    }
+
+                default:
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                    {
+                        message = "Invalid user type"
+                    });
+            }
         }
     }
 

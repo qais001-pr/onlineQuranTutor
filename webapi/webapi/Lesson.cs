@@ -19,5 +19,6 @@ namespace webapi
         public virtual LessonPlan LessonPlan { get; set; }
         public virtual Quran Quran { get; set; }
         public virtual Subject Subject { get; set; }
+        public virtual surah surah { get; set; }
     }
 }

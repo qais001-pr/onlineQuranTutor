@@ -16,5 +16,13 @@ namespace webapi.Models
         public DateTime classDate { get; set; }
         public DateTime createdAt { get; set; }
     }
+
+
+    public class UpdateClass
+    {
+        public int classID { get; set; }
+        public string status { get; set; }
+        public int corrections { get; set; }
+    }
 }
 

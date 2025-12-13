@@ -32,9 +32,8 @@ namespace webapi
         public string country { get; set; }
         public string city { get; set; }
         public string timezone { get; set; }
-        public byte[] profilePicture { get; set; }
-        public string pictureType { get; set; }
         public Nullable<System.DateTime> createdAt { get; set; }
+        public string profilePicture { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Guardian> Guardians { get; set; }

@@ -17,9 +17,8 @@ namespace webapi
         public int certificateID { get; set; }
         public string title { get; set; }
         public string issued_by_department { get; set; }
-        public byte[] image { get; set; }
-        public string imageType { get; set; }
         public Nullable<System.DateTime> createdAt { get; set; }
+        public string PROFILE { get; set; }
     
         public virtual Tutor Tutor { get; set; }
     }

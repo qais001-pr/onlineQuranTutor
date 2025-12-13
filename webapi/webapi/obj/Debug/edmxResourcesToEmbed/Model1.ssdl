@@ -7,10 +7,9 @@
     <Property Name="certificateID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
     <Property Name="title" Type="varchar" MaxLength="200" Nullable="false" />
     <Property Name="issued_by_department" Type="varchar" MaxLength="200" />
-    <Property Name="image" Type="varbinary(max)" />
-    <Property Name="imageType" Type="varchar" MaxLength="20" />
     <Property Name="tutorID" Type="int" Nullable="false" />
     <Property Name="createdAt" Type="datetime" />
+    <Property Name="PROFILE" Type="varchar(max)" />
   </EntityType>
   <EntityType Name="Child">
     <Key>
@@ -68,6 +67,7 @@
     <Property Name="LessonPlanID" Type="int" Nullable="false" />
     <Property Name="QuranID" Type="int" Nullable="false" />
     <Property Name="SubjectID" Type="int" Nullable="false" />
+    <Property Name="SurahID" Type="int" Nullable="false" />
   </EntityType>
   <EntityType Name="LessonPlan">
     <Key>
@@ -134,6 +134,7 @@
     <Property Name="status" Type="varchar" MaxLength="50" Nullable="false" />
     <Property Name="createdAt" Type="datetime" />
     <Property Name="updatedAt" Type="datetime" />
+    <Property Name="SurahID" Type="int" />
   </EntityType>
   <EntityType Name="Subjects">
     <Key>
@@ -190,9 +191,8 @@
     <Property Name="country" Type="varchar" MaxLength="100" />
     <Property Name="city" Type="varchar" MaxLength="100" />
     <Property Name="timezone" Type="varchar" MaxLength="100" />
-    <Property Name="profilePicture" Type="varbinary(max)" />
-    <Property Name="pictureType" Type="varchar" MaxLength="50" />
     <Property Name="createdAt" Type="datetime" />
+    <Property Name="profilePicture" Type="varchar(max)" />
   </EntityType>
   <Association Name="FK_Certificate_Tutor">
     <End Role="Tutor" Type="Self.Tutor" Multiplicity="1">
@@ -377,6 +377,18 @@
       </Principal>
       <Dependent Role="Lesson">
         <PropertyRef Name="SubjectID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Lessons_Surah">
+    <End Role="surahs" Type="Self.surahs" Multiplicity="1" />
+    <End Role="Lesson" Type="Self.Lesson" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="surahs">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Lesson">
+        <PropertyRef Name="SurahID" />
       </Dependent>
     </ReferentialConstraint>
   </Association>
@@ -677,6 +689,10 @@
     </AssociationSet>
     <AssociationSet Name="FK_Lessons_Subject" Association="Self.FK_Lessons_Subject">
       <End Role="Subjects" EntitySet="Subjects" />
+      <End Role="Lesson" EntitySet="Lesson" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Lessons_Surah" Association="Self.FK_Lessons_Surah">
+      <End Role="surahs" EntitySet="surahs" />
       <End Role="Lesson" EntitySet="Lesson" />
     </AssociationSet>
     <AssociationSet Name="FK_Quran_Surah" Association="Self.FK_Quran_Surah">

@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Web.Http;
 using webapi.Models;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace webapi.Controllers
 {
@@ -10,24 +11,19 @@ namespace webapi.Controllers
     {
         onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
 
-        // ---------------------------------------------------------
-        // ADD TUTOR SLOT
-        // ---------------------------------------------------------
         [HttpPost]
         public HttpResponseMessage addTutorSlots(TutorSlots tutorSlot)
         {
-            // Input validation
             if (tutorSlot.tutorID <= 0 || tutorSlot.slotid <= 0 || tutorSlot.dayid <= 0 ||
                 string.IsNullOrWhiteSpace(tutorSlot.status))
             {
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.BadRequest,
-                    message = "Invalid input data"
-                });
+                return Request.CreateResponse(
+                    HttpStatusCode.BadRequest, new
+                    {
+                        message = "Invalid input data"
+                    });
             }
 
-            // Check if slot already exists
             var tutor = _context.TutorSlots.Where(x =>
                 x.Tutor.tutorID == tutorSlot.tutorID &&
                 x.Slot.slotID == tutorSlot.slotid &&
@@ -36,14 +32,13 @@ namespace webapi.Controllers
 
             if (tutor != null)
             {
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.BadRequest,
-                    message = $"A slot already exists for Tutor {tutorSlot.tutorID} on day {tutorSlot.dayid}."
-                });
+                return Request.CreateResponse(
+                    HttpStatusCode.BadRequest, new
+                    {
+                        message = $"A slot already exists for Tutor {tutorSlot.tutorID} on day {tutorSlot.dayid}."
+                    });
             }
 
-            // Add new slot
             _context.TutorSlots.Add(new TutorSlot()
             {
                 Tutor = _context.Tutors.Find(tutorSlot.tutorID),
@@ -54,16 +49,16 @@ namespace webapi.Controllers
 
             _context.SaveChanges();
 
-            return Request.CreateResponse(new
-            {
-                statusCode = HttpStatusCode.OK,
-                message = "Tutor Slots added Successfully"
-            });
+            return Request.CreateResponse(
+                HttpStatusCode.OK, new
+                {
+                    message = "Tutor Slots added Successfully"
+                });
         }
 
-        // ---------------------------------------------------------
-        // GET TUTOR DETAILS
-        // ---------------------------------------------------------
+
+
+
         [HttpGet]
         public HttpResponseMessage getTutorDetails(int id)
         {
@@ -118,10 +113,131 @@ namespace webapi.Controllers
 
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
-                statusCode = HttpStatusCode.OK,
                 data = tutor,
                 message = "Data collected successfully"
             });
         }
+
+
+        [HttpGet]
+        public HttpResponseMessage getClassesByUsingTutorID(int tutorID)
+        {
+
+            if (tutorID <= 0)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                {
+                    message = "Invalid tutor ID"
+                });
+            }
+
+            var result = (
+                from c in _context.Classes
+                join Tutor in _context.Tutors on c.Tutor.tutorID equals Tutor.tutorID
+
+                join s in _context.Slots on c.Slot.slotID equals s.slotID
+
+                join d in _context.Days on c.Day.dayID equals d.dayID
+
+                join st in _context.Students on c.Student.studentID equals st.studentID
+
+                join u in _context.Users on st.User.userID equals u.userID
+
+                join sub in _context.Subjects on
+
+                c.Subject.subjectID equals sub.subjectID
+
+                where c.Tutor.tutorID == tutorID
+                orderby c.classDate
+                select new
+                {
+                    tutorID = Tutor.tutorID,
+                    userID = u.userID,
+                    studentName = u.name,
+                    StudentTimeZone = u.timezone,
+                    gender = u.gender,
+                    studentProfilePicture = u.profilePicture,
+                    usertype = u.userType,
+                    starttime = s.startTime,
+                    endtime = s.endTime,
+                    dayOfClass = d.dayName,
+                    Subject = sub.subjectName,
+                    status = c.status,
+                    classDate = c.classDate
+
+                }
+                ).ToList();
+            return Request.CreateResponse(
+                HttpStatusCode.OK, new
+                {
+                    data = result,
+                    message = "Data collected successfully"
+                });
+
+        }
+
+
+        [HttpGet]
+        public HttpResponseMessage getClassesByusingTutorIDAndDayID(TutorClassesDTO data)
+        {
+
+            if (data.tutorID <= 0 || data.dayID <= 0)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                {
+                    message = "Invalid tutor ID or Day ID"
+                });
+            }
+
+            var result = (
+                from c in _context.Classes
+                join Tutor in _context.Tutors on c.Tutor.tutorID equals Tutor.tutorID
+
+                join s in _context.Slots on c.Slot.slotID equals s.slotID
+
+                join d in _context.Days on c.Day.dayID equals d.dayID
+
+                join st in _context.Students on c.Student.studentID equals st.studentID
+
+                join u in _context.Users on st.User.userID equals u.userID
+
+                join sub in _context.Subjects on
+
+                c.Subject.subjectID equals sub.subjectID
+
+                where c.Tutor.tutorID == data.tutorID && d.dayID == data.dayID
+                orderby c.classDate
+                select new
+                {
+                    tutorID = Tutor.tutorID,
+                    userID = u.userID,
+                    studentName = u.name,
+                    StudentTimeZone = u.timezone,
+                    gender = u.gender,
+                    studentProfilePicture = u.profilePicture,
+                    usertype = u.userType,
+                    starttime = s.startTime,
+                    endtime = s.endTime,
+                    dayOfClass = d.dayName,
+                    Subject = sub.subjectName,
+                    status = c.status,
+                    classDate = c.classDate
+
+                }
+                ).ToList();
+            return Request.CreateResponse(
+                HttpStatusCode.OK, new
+                {
+                    data = result,
+                    message = "Data collected successfully"
+                });
+        }
+    }
+
+
+    public class TutorClassesDTO
+    {
+        public int dayID { get; set; }
+        public int tutorID { get; set; }
     }
 }

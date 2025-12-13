@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
 using webapi.Models;
 namespace webapi.Controllers
@@ -10,8 +13,49 @@ namespace webapi.Controllers
     {
         onlineQuranTutorEntities4 _context = new onlineQuranTutorEntities4();
         [HttpPost]
-        public HttpResponseMessage addUser(SignUpUser user)
+        public HttpResponseMessage addUser()
         {
+            var request = HttpContext.Current.Request;
+
+            var json = request.Form["user"];
+
+
+            if (string.IsNullOrEmpty(json))
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Student JSON missing");
+
+            SignUpUser user = JsonConvert.DeserializeObject<SignUpUser>(json);
+
+
+
+
+
+            if (request.Files.Count > 0)
+            {
+                var postedFile = request.Files["image"];
+
+                if (postedFile != null && postedFile.ContentLength > 0)
+                {
+                    var extension = Path.GetExtension(postedFile.FileName);
+                    string fileName = user.email + extension;
+
+                    string serverPath = HttpContext.Current.Server.MapPath("~/images/");
+                    string fullPath = Path.Combine(serverPath, fileName);
+
+                    if (!Directory.Exists(serverPath))
+                        Directory.CreateDirectory(serverPath);
+
+                    postedFile.SaveAs(fullPath);
+
+                    user.ProfilePicture = fileName;
+                }
+            }
+
+
+
+
+
+
+
             if (user == null ||
                 string.IsNullOrWhiteSpace(user.name) ||
                 string.IsNullOrWhiteSpace(user.email) ||
@@ -21,41 +65,24 @@ namespace webapi.Controllers
                 string.IsNullOrWhiteSpace(user.userType) ||
                 string.IsNullOrWhiteSpace(user.city) ||
                 string.IsNullOrWhiteSpace(user.timezone) ||
-                string.IsNullOrWhiteSpace(user.profileType) ||
-                string.IsNullOrWhiteSpace(user.country) ||
-                string.IsNullOrWhiteSpace(user.profile64String))
+                string.IsNullOrWhiteSpace(user.country))
             {
-                return Request.CreateResponse(new
-                {
-                    statusCode =HttpStatusCode.NotAcceptable,
-                    message = "All fields are required"
-                });
+                return Request.CreateResponse(
+                    HttpStatusCode.NotAcceptable, new
+                    {
+                        message = "All fields are required"
+                    });
             }
 
             var checkUser = _context.Users.Where(u => u.email == user.email).FirstOrDefault();
             if (checkUser != null)
             {
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.NotAcceptable,
-                    message = $"User with email {user.email} already exists"
-                });
+                return Request.CreateResponse(
+                    HttpStatusCode.NotAcceptable, new
+                    {
+                        message = $"User with email {user.email} already exists"
+                    });
             }
-
-            byte[] pictureBytes;
-            try
-            {
-                pictureBytes = Convert.FromBase64String(user.profile64String);
-            }
-            catch
-            {
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.Forbidden,
-                    message = "Invalid Base64 image format"
-                });
-            }
-
             var newUser = new User
             {
                 name = user.name,
@@ -66,9 +93,8 @@ namespace webapi.Controllers
                 dateOfBirth = user.dateOfBirth,
                 city = user.city,
                 timezone = user.timezone,
-                profilePicture = pictureBytes,
                 country = user.country,
-                pictureType = user.profileType,
+                profilePicture = user.ProfilePicture,
                 createdAt = DateTime.Now
             };
 
@@ -98,14 +124,14 @@ namespace webapi.Controllers
                                          u.city,
                                          u.timezone,
                                          u.profilePicture,
-                                         u.pictureType,
                                      };
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.OK,
-                    message = "Guardian added successfully",
-                    data = registereduser,
-                });
+                return Request.CreateResponse(
+                    HttpStatusCode.OK, new
+                    {
+
+                        message = "Guardian added successfully",
+                        data = registereduser,
+                    });
             }
             if (user.userType.Equals("Tutor", StringComparison.OrdinalIgnoreCase) &&
                 user.tutorSubjects != null &&
@@ -148,60 +174,24 @@ namespace webapi.Controllers
                                          u.country,
                                          u.city,
                                          u.timezone,
-                                         u.profilePicture,
-                                         u.pictureType,
+                                         u.profilePicture
 
                                      };
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.OK,
-                    message = "Tutor added successfully",
-                    data = registereduser,
-                });
+                return Request.CreateResponse(
+                    HttpStatusCode.OK, new
+                    {
+                        message = "Tutor added successfully",
+                        data = registereduser,
+                    });
             }
-            return Request.CreateResponse(new
-            {
-                statusCode = HttpStatusCode.OK,
-                message = "User added successfully"
-            });
+            return Request.CreateResponse(
+                HttpStatusCode.OK, new
+                {
+                    message = "User added successfully"
+                });
         }
 
-        [HttpPost]
-        public HttpResponseMessage loginUser(Auth auth)
-        {
-            if (auth == null)
-            {
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.BadRequest,
-                    message = "Invalid request"
-                });
-            }
 
-            var user = from u in _context.Users
-                       where u.email == auth.email && u.password == auth.password
-                       select new
-                       {
-                           userid = u.userID,
-                           name = u.name,
-                           email = u.email,
-                           password = u.password,
-                           gender = u.gender,
-                           userType = u.userType,
-                           dateOfBirth = u.dateOfBirth,
-                           city = u.city,
-                           timezone = u.timezone,
-                           profile64String = u.profilePicture,
-                           imageType = u.pictureType,
-
-                       };
-            return Request.CreateResponse(new
-            {
-                statusCode = HttpStatusCode.OK,
-                data = user,
-                message = "Login successful"
-            });
-        }
     }
 }
 

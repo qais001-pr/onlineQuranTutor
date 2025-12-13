@@ -7,8 +7,10 @@ namespace webapi.Models
         public int studentid { get; set; }
         public int tutorid { get; set; }
         public int subjectid { get; set; }
+        public int surahsID { get; set; }
         public string status  { get; set; }
         public DateTime createdAt { get; set; }
         public DateTime updatedAt { get; set; }
     }
 }
+

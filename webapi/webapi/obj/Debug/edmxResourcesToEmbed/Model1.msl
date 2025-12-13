@@ -1,15 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-  <EntityContainerMapping StorageEntityContainer="onlineQuranTutorModelStoreContainer" CdmEntityContainer="onlineQuranTutorEntities6">
+  <EntityContainerMapping StorageEntityContainer="onlineQuranTutorModelStoreContainer" CdmEntityContainer="onlineQuranTutorEntities8">
     <EntitySetMapping Name="Certificates">
       <EntityTypeMapping TypeName="onlineQuranTutorModel.Certificate">
         <MappingFragment StoreEntitySet="Certificate">
           <ScalarProperty Name="certificateID" ColumnName="certificateID" />
           <ScalarProperty Name="title" ColumnName="title" />
           <ScalarProperty Name="issued_by_department" ColumnName="issued_by_department" />
-          <ScalarProperty Name="image" ColumnName="image" />
-          <ScalarProperty Name="imageType" ColumnName="imageType" />
           <ScalarProperty Name="createdAt" ColumnName="createdAt" />
+          <ScalarProperty Name="PROFILE" ColumnName="PROFILE" />
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
@@ -122,6 +121,7 @@
           <ScalarProperty Name="status" ColumnName="status" />
           <ScalarProperty Name="createdAt" ColumnName="createdAt" />
           <ScalarProperty Name="updatedAt" ColumnName="updatedAt" />
+          <ScalarProperty Name="SurahID" ColumnName="SurahID" />
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
@@ -178,9 +178,8 @@
           <ScalarProperty Name="country" ColumnName="country" />
           <ScalarProperty Name="city" ColumnName="city" />
           <ScalarProperty Name="timezone" ColumnName="timezone" />
-          <ScalarProperty Name="profilePicture" ColumnName="profilePicture" />
-          <ScalarProperty Name="pictureType" ColumnName="pictureType" />
           <ScalarProperty Name="createdAt" ColumnName="createdAt" />
+          <ScalarProperty Name="profilePicture" ColumnName="profilePicture" />
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
@@ -323,6 +322,14 @@
     <AssociationSetMapping Name="FK_Lessons_Subject" TypeName="onlineQuranTutorModel.FK_Lessons_Subject" StoreEntitySet="Lesson">
       <EndProperty Name="Subjects">
         <ScalarProperty Name="subjectID" ColumnName="SubjectID" />
+      </EndProperty>
+      <EndProperty Name="Lesson">
+        <ScalarProperty Name="LessonsID" ColumnName="LessonsID" />
+      </EndProperty>
+    </AssociationSetMapping>
+    <AssociationSetMapping Name="FK_Lessons_Surah" TypeName="onlineQuranTutorModel.FK_Lessons_Surah" StoreEntitySet="Lesson">
+      <EndProperty Name="surahs">
+        <ScalarProperty Name="Id" ColumnName="SurahID" />
       </EndProperty>
       <EndProperty Name="Lesson">
         <ScalarProperty Name="LessonsID" ColumnName="LessonsID" />

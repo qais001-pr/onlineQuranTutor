@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -19,181 +20,189 @@ namespace webapi.Controllers
         {
 
 
-            if (requestdata.tutorid <= 0 || requestdata.studentid <= 0 || requestdata.subjectid <= 0)
+            if (requestdata.tutorid <= 0 || requestdata.studentid <= 0 || requestdata.subjectid <= 0 || requestdata.surahsID <= 0 || requestdata.surahsID > 30)
             {
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.BadRequest,
-                    message = "Invalid Input"
-                });
+                return Request.CreateResponse(
+                    HttpStatusCode.BadRequest, new
+                    {
+                        message = "Invalid Input"
+                    });
             }
+
+
+
             var check = _context.Students.Where(x => x.studentID == requestdata.studentid
                       && x.Subject.subjectID == requestdata.subjectid).FirstOrDefault();
 
             if (check == null)
             {
-                return Request.CreateResponse(new
-                {
-                    statusCode = HttpStatusCode.BadRequest,
-                    message = "No student found with this student ID and subject ID."
-                });
+                return Request.CreateResponse(
+                    HttpStatusCode.BadRequest, new
+                    {
+                        message = "No student found with this student ID and subject ID."
+                    });
             }
 
+            var chectsurahID = _context.surahs.Where(x => x.Id == requestdata.surahsID).FirstOrDefault();
+
+            if (chectsurahID == null)
+            {
+                return Request.CreateResponse(
+                    HttpStatusCode.BadRequest, new
+                    {
+                        message = "Surah Not Found With this ID"
+                    });
+            }
+
+            var checkReq = _context.StudentTutorRequests.Where(
+                req => req.SurahID == requestdata.surahsID &&
+                req.Tutor.tutorID == requestdata.tutorid &&
+                req.Student.studentID == requestdata.studentid)
+                .FirstOrDefault();
+
+
+
+            if (checkReq != null)
+            {
+                return Request.CreateResponse(
+                    HttpStatusCode.BadRequest, new
+                    {
+                        message = "Request Already Sent To Tutor."
+                    });
+            }
             _context.StudentTutorRequests.Add(new StudentTutorRequest()
             {
                 Student = _context.Students.Where(s => s.studentID == requestdata.studentid).FirstOrDefault(),
                 Tutor = _context.Tutors.Where(t => t.tutorID == requestdata.tutorid).FirstOrDefault(),
                 Subject = _context.Subjects.Where(sub => sub.subjectID == requestdata.subjectid).FirstOrDefault(),
+                SurahID = requestdata.surahsID,
                 status = "pending",
                 createdAt = System.DateTime.Now,
                 updatedAt = System.DateTime.Now
             });
             _context.SaveChanges();
-            return Request.CreateResponse(new
-            {
-                statusCode = HttpStatusCode.OK,
-                message = "Request Send Successfully"
-            });
+            return Request.CreateResponse(
+                HttpStatusCode.OK, new
+                {
+                    message = "Request Send Successfully"
+                });
         }
 
-        [HttpPost]
-        public HttpResponseMessage CreateClasses(AcceptRequestFromTutorDTO request)
+
+
+        public DateTime GetNextDateForDay(DayOfWeek day)
         {
-            try
+            DateTime today = DateTime.Today;
+            int daysUntil = ((int)day - (int)today.DayOfWeek + 7) % 7;
+            if (daysUntil == 0) daysUntil = 7;
+            return today.AddDays(daysUntil);
+        }
+
+
+
+
+
+
+
+
+
+        [HttpPost]
+        public HttpResponseMessage CreateClassesWeeklySimple(AcceptRequestFromTutorDTO request)
+        {
+            var student = _context.Students.Where(s => s.studentID == request.studentID).FirstOrDefault();
+            var tutor = _context.Tutors.Where(t => t.tutorID == request.tutorID).FirstOrDefault();
+            var subject = _context.Subjects.Where(s => s.subjectID == request.subjectID).FirstOrDefault();
+            var studentRequest = _context.StudentTutorRequests.Where(r => r.RequestID == request.requestID).FirstOrDefault();
+
+            if (student == null || tutor == null || subject == null || studentRequest == null)
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "Invalid request data" });
+
+            var lessons = _context.Lessons
+                .Where(l => l.Subject.subjectID == request.subjectID && l.surah.Id == request.surahID)
+                .ToList();
+
+            if (!lessons.Any())
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "No lessons found" });
+
+            var matchingSlots = (from ts in _context.TutorSlots
+                                 join ss in _context.StudentSlots
+                                 on new { ts.Slot.slotID, ts.Day.dayID }
+                                 equals new { ss.Slot.slotID, ss.Day.dayID }
+                                 where ts.Tutor.tutorID == request.tutorID
+                                       && ss.Student.studentID == request.studentID
+                                       && ts.status == "available"
+                                 select ts).ToList();
+
+
+            if (!matchingSlots.Any())
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new { message = "No matching slots available" });
+
+            
+            
+            
+            List<DateTime> slotStartDates = new List<DateTime>();
+
+            foreach (var slot in matchingSlots)
             {
-                // -------------------------
-                // 1. Validate Student
-                // -------------------------
-                var student = _context.Students.Find(request.studentID);
-                if (student == null)
-                    return Request.CreateResponse(new
-                    {
-                        statusCode = HttpStatusCode.BadRequest,
-                        message = "Student Not Found",
-                    });
+                if (!Enum.TryParse(slot.Day.dayName, true, out DayOfWeek dayOfWeek))
+                    return Request.CreateResponse(
+                        HttpStatusCode.BadRequest,
+                        new { message = $"Invalid day name: {slot.Day.dayName}" }
+                    );
 
-                // Subject match validation
-                if (student.Subject.subjectID != request.subjectID)
-                    return Request.CreateResponse(new
-                    {
-                        statusCode = HttpStatusCode.BadRequest,
-                        message = "Student is not assigned to this subject",
-                    });
-
-                // -------------------------
-                // 2. Validate Tutor
-                // -------------------------
-                var tutor = _context.Tutors.Find(request.tutorID);
-                if (tutor == null)
-                    return Request.CreateResponse(new
-                    {
-                        statusCode = HttpStatusCode.BadRequest,
-                        message = "Tutor Not Found",
-                    });
-
-
-                // Tutor must teach the subject
-                bool tutorTeaches = _context.TutorSubjects
-                    .Any(x => x.Tutor.tutorID == request.tutorID &&
-                              x.Subject.subjectID == request.subjectID);
-
-                if (!tutorTeaches)
-                    return Request.CreateResponse(new
-                    {
-                        statusCode = HttpStatusCode.BadRequest,
-                        message = "Tutor does not teach this subject",
-                    });
-
-
-                // -------------------------
-                // 3. Validate LessonPlan
-                // -------------------------
-                var lessonPlan = _context.LessonPlans.Where(req => req.lessonPlanID == req.lessonPlanID).FirstOrDefault();
-                if (lessonPlan == null)
-                    return Request.CreateResponse(new
-                    {
-                        statusCode = HttpStatusCode.BadRequest,
-                        message = "Lesson plan not found",
-                    });
-
-
-                // -------------------------
-                // 4. Get Lessons for this subject + lessonplan
-                // -------------------------
-                var lessons = _context.Lessons
-                    .Where(l => l.LessonPlan.lessonPlanID == request.lessonplanID &&
-                                l.Subject.subjectID == request.subjectID)
-                    .ToList();
-
-                if (!lessons.Any())
-                    return Request.CreateResponse(new
-                    {
-                        statusCode = HttpStatusCode.BadRequest,
-                        message = "No lessons found for this subject under this lesson plan",
-                    });
-
-
-                // -------------------------
-                // 5. Check slot conflict (same day cannot have multiple slots)
-                // -------------------------
-                bool slotAlreadyBooked = _context.Classes.Any(c =>
-                    c.Tutor.tutorID == request.tutorID &&
-                    c.Day.dayID == request.dayID &&
-                    c.Slot.slotID == request.slotID
-                );
-
-                if (slotAlreadyBooked)
-                    return Request.CreateResponse(new
-                    {
-                        statusCode = HttpStatusCode.BadRequest,
-                        message = "This slot is already booked on this day",
-                    });
-
-
-                // -------------------------
-                // 6. Create Classes for each Lesson
-                // -------------------------
-                List<ClassDTO> classDTOs = new List<ClassDTO>();
-                foreach (var lesson in lessons)
-                {
-                    var newClass = new ClassDTO()
-                    {
-                        studentID = request.studentID,
-                        tutorID = request.tutorID,
-                        slotID = request.slotID,
-                        dayID = request.dayID,
-                        lessonplanID = request.lessonplanID,
-                        studentRequestTutorID = request.studentRequestTutorID,
-                        subjectID = request.subjectID,
-                        status = "scheduled",
-                        corrections = 0,
-                        classDate = request.classDate,
-                        createdAt = DateTime.Now
-                    };
-                    classDTOs.Add(newClass);
-                    //_context.Classes.Add(new Class()
-                    //{
-
-                    //});
-                }
-
-                //_context.SaveChanges();
-
-                return Request.CreateResponse(HttpStatusCode.OK, new
-                {
-                    message = "Classes created successfully for all lessons.",
-                    classes = classDTOs,
-                    totalClasses = lessons.Count
-                });
+                slotStartDates.Add(GetNextDateForDay(dayOfWeek));
             }
-            catch (Exception ex)
+
+            
+            
+            List<int> slotWeekCounters = Enumerable.Repeat(0, matchingSlots.Count).ToList();
+
+            
+            var classesToAdd = new List<Class>();
+          
+            
+            
+            int slotIndex = 0;
+
+            foreach (var lesson in lessons)
             {
-                return Request.CreateResponse(HttpStatusCode.InternalServerError, new
+                int currentSlotIndex = slotIndex % matchingSlots.Count;
+
+                var slot = matchingSlots[currentSlotIndex];
+                DateTime classDate =
+                    slotStartDates[currentSlotIndex].AddDays(slotWeekCounters[currentSlotIndex] * 7);
+
+                classesToAdd.Add(new Class
                 {
-                    message = "An error occurred.",
-                    error = ex.Message
+                    Student = student,
+                    Tutor = tutor,
+                    Slot = slot.Slot,
+                    Day = slot.Day,
+                    Subject = subject,
+                    LessonPlan = lesson.LessonPlan,
+                    StudentTutorRequest = studentRequest,
+                    status = "pending",
+                    corrections = 0,
+                    classDate = classDate,
+                    createdAt = DateTime.Now
                 });
+
+                slotWeekCounters[currentSlotIndex]++;
+
+                slotIndex++;
             }
+
+            _context.Classes.AddRange(classesToAdd);
+
+            foreach (var slot in matchingSlots)
+                slot.status = "booked";
+
+            _context.SaveChanges();
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                message = "Classes created successfully (weekly, Monday start)"
+            });
         }
 
     }

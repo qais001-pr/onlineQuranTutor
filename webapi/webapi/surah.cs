@@ -18,6 +18,7 @@ namespace webapi
         public surah()
         {
             this.Juzs = new HashSet<Juz>();
+            this.Lessons = new HashSet<Lesson>();
             this.Qurans = new HashSet<Quran>();
         }
     
@@ -27,6 +28,8 @@ namespace webapi
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Juz> Juzs { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Lesson> Lessons { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Quran> Qurans { get; set; }
     }

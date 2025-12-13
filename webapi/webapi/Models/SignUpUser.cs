@@ -13,9 +13,7 @@ namespace webapi.Models
         public string country { get; set; }
         public string city { get; set; }
         public string timezone { get; set; }
-        public byte[] profilepicturebytes { get; set; }
-        public string profileType { get; set; }
-        public string profile64String { get; set; }
+        public string ProfilePicture { get; set; }
         public List<TutorSubject> tutorSubjects { get; set; }
     }
 
